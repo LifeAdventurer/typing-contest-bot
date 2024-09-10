@@ -1,0 +1,6 @@
+# token
+config.json
+
+__pycache__
+
+venv/

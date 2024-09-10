@@ -1,0 +1,1 @@
+# Typing Contest Discord Bot

@@ -10,6 +10,30 @@ python = "^3.11"
 discord-py = "^2.4.0"
 
 
+[tool.poetry.group.dev.dependencies]
+ruff = "^0.6.4"
+
 [build-system]
 requires = ["poetry-core"]
 build-backend = "poetry.core.masonry.api"
+
+[tool.ruff]
+line-length = 80
+
+[tool.ruff.lint]
+select = [
+    "F",  # pyflakes
+    "E",  # pycodestyle errors
+    "W",  # pycodestyle warnings
+    "I",  # isort
+    "UP", # pyupgrade
+    "B",  # flake8-bugbear
+    "C4", # flake8-comprehensions
+]
+ignore = [
+    "E501", # line too long, handled by black
+]
+
+[tool.ruff.format]
+quote-style = "double"
+indent-style = "space"

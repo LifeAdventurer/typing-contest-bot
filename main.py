@@ -13,13 +13,51 @@ def load_token() -> str:
 class TypingContestBot(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
+        self.contest_active = False
+        self.contest_creator = None
+        self.contest_channel = None
+
+    def check_contest_channel(self, ctx):
+        if self.contest_active and ctx.channel != self.contest_channel:
+            return False
+        return True
+
+    @commands.Cog.listener()
+    async def on_ready(self):
+        print(f"Logged in as {self.bot.user.name}")
 
     @commands.command(name="start")
     async def start(self, ctx):
+        if not self.check_contest_channel(ctx):
+            return
+
+        if self.contest_active:
+            await ctx.reply("The typing contest is already active!")
+            return
+
+        self.contest_active = True
+        self.contest_creator = ctx.author
+        self.contest_channel = ctx.channel
         await ctx.reply("The typing contest has started!")
 
     @commands.command(name="end")
     async def end(self, ctx):
+        if not self.check_contest_channel(ctx):
+            return
+
+        if not self.contest_active:
+            await ctx.reply("No typing contest is currently active.")
+            return
+
+        if ctx.author != self.contest_creator:
+            await ctx.reply(
+                "You are not authorized to end the contest. Only the user who started it can end it."
+            )
+            return
+
+        self.contest_active = False
+        self.contest_creator = None
+        self.contest_channel = None
         await ctx.reply("The typing contest has ended!")
 
 

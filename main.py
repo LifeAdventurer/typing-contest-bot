@@ -67,6 +67,31 @@ class TypingContestBot(commands.Cog):
         else:
             await ctx.reply("No active contest at the moment.")
 
+    @commands.command(name="commands")
+    async def commands(self, ctx):
+        embed = discord.Embed(
+            title="Typing Contest Bot Commands",
+            description="Here are the available commands:",
+            color=discord.Color.purple(),
+        )
+        embed.add_field(
+            name="!start",
+            value="Start a typing contest in the current channel.",
+            inline=False,
+        )
+        embed.add_field(
+            name="!end", value="End the current typing contest.", inline=False
+        )
+        embed.add_field(
+            name="!status",
+            value="Check the status of the typing contest.",
+            inline=False,
+        )
+        embed.add_field(
+            name="!commands", value="Show this list of commands.", inline=False
+        )
+        await ctx.reply(embed=embed)
+
 
 class BotSetup:
     def __init__(self, token):

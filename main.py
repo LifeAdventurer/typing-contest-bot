@@ -32,6 +32,7 @@ class TypingContestBot(commands.Cog):
         self.contest_creator = None
         self.contest_channel = None
         self.participants = set()
+        self.history_records = dict()
 
     def check_contest_channel(self, ctx):
         if self.contest_active and ctx.channel != self.contest_channel:
@@ -78,7 +79,7 @@ class TypingContestBot(commands.Cog):
     @commands.command(name="status")
     async def status(self, ctx):
         if self.contest_active:
-            await ctx.reply(STATUS_ACTIVE)
+            await ctx.reply(STATUS_ACTIVE.format(user=ctx.author))
         else:
             await ctx.reply(STATUS_INACTIVE)
 

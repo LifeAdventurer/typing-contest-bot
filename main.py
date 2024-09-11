@@ -4,6 +4,21 @@ import json
 import discord
 from discord.ext import commands
 
+from constants import (
+    ALREADY_JOINED,
+    CONTEST_ALREADY_ACTIVE,
+    END_SUCCESS,
+    JOIN_SUCCESS,
+    NO_ACTIVE_CONTEST,
+    NO_PARTICIPANTS,
+    NOT_CONTEST_CREATOR,
+    NOT_IN_CONTEST,
+    QUIT_SUCCESS,
+    START_SUCCESS,
+    STATUS_ACTIVE,
+    STATUS_INACTIVE,
+)
+
 
 def load_token() -> str:
     with open("./config.json") as file:
@@ -33,13 +48,13 @@ class TypingContestBot(commands.Cog):
             return
 
         if self.contest_active:
-            await ctx.reply("The typing contest is already active!")
+            await ctx.reply(CONTEST_ALREADY_ACTIVE)
             return
 
         self.contest_active = True
         self.contest_creator = ctx.author
         self.contest_channel = ctx.channel
-        await ctx.reply("The typing contest has started!")
+        await ctx.reply(START_SUCCESS)
 
     @commands.command(name="end")
     async def end(self, ctx):
@@ -47,27 +62,25 @@ class TypingContestBot(commands.Cog):
             return
 
         if not self.contest_active:
-            await ctx.reply("No typing contest is currently active.")
+            await ctx.reply(NO_ACTIVE_CONTEST)
             return
 
         if ctx.author != self.contest_creator:
-            await ctx.reply(
-                "You are not authorized to end the contest. Only the user who started it can end it."
-            )
+            await ctx.reply(NOT_CONTEST_CREATOR)
             return
 
         self.contest_active = False
         self.contest_creator = None
         self.contest_channel = None
         self.participants.clear()
-        await ctx.reply("The typing contest has ended!")
+        await ctx.reply(END_SUCCESS)
 
     @commands.command(name="status")
     async def status(self, ctx):
         if self.contest_active:
-            await ctx.reply("A typing contest is currently active!")
+            await ctx.reply(STATUS_ACTIVE)
         else:
-            await ctx.reply("No active contest at the moment.")
+            await ctx.reply(STATUS_INACTIVE)
 
     @commands.command(name="join")
     async def join(self, ctx):
@@ -75,16 +88,14 @@ class TypingContestBot(commands.Cog):
             return
 
         if not self.contest_active:
-            await ctx.reply("No typing contest is currently active.")
+            await ctx.reply(NO_ACTIVE_CONTEST)
             return
 
         if ctx.author in self.participants:
-            await ctx.reply("You are already in the contest.")
+            await ctx.reply(ALREADY_JOINED)
         else:
             self.participants.add(ctx.author)
-            await ctx.reply(
-                f"{ctx.author.mention} has joined the typing contest!"
-            )
+            await ctx.reply(JOIN_SUCCESS.format(user=ctx.author.mention))
 
     @commands.command(name="quit")
     async def quit(self, ctx):
@@ -92,15 +103,13 @@ class TypingContestBot(commands.Cog):
             return
 
         if not self.contest_active:
-            await ctx.reply("No typing contest is currently active.")
+            await ctx.reply(NO_ACTIVE_CONTEST)
 
         if ctx.author not in self.participants:
-            await ctx.reply("You are not in the contest.")
+            await ctx.reply(NOT_IN_CONTEST)
         else:
             self.participants.remove(ctx.author)
-            await ctx.reply(
-                f"{ctx.author.mention} has quit the typing contest!"
-            )
+            await ctx.reply(QUIT_SUCCESS.format(user=ctx.author.mention))
 
     @commands.command(name="list")
     async def list_participants(self, ctx):
@@ -108,11 +117,11 @@ class TypingContestBot(commands.Cog):
             return
 
         if not self.contest_active:
-            await ctx.reply("No typing contest is currently active.")
+            await ctx.reply(NO_ACTIVE_CONTEST)
             return
 
         if not self.participants:
-            await ctx.reply("No participants have joined the contest yet.")
+            await ctx.reply(NO_PARTICIPANTS)
             return
 
         participants_list = "\n".join(

@@ -60,6 +60,13 @@ class TypingContestBot(commands.Cog):
         self.contest_channel = None
         await ctx.reply("The typing contest has ended!")
 
+    @commands.command(name="status")
+    async def status(self, ctx):
+        if self.contest_active:
+            await ctx.reply("A typing contest is currently active!")
+        else:
+            await ctx.reply("No active contest at the moment.")
+
 
 class BotSetup:
     def __init__(self, token):

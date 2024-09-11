@@ -16,6 +16,7 @@ class TypingContestBot(commands.Cog):
         self.contest_active = False
         self.contest_creator = None
         self.contest_channel = None
+        self.participants = set()
 
     def check_contest_channel(self, ctx):
         if self.contest_active and ctx.channel != self.contest_channel:
@@ -58,6 +59,7 @@ class TypingContestBot(commands.Cog):
         self.contest_active = False
         self.contest_creator = None
         self.contest_channel = None
+        self.participants.clear()
         await ctx.reply("The typing contest has ended!")
 
     @commands.command(name="status")
@@ -66,6 +68,39 @@ class TypingContestBot(commands.Cog):
             await ctx.reply("A typing contest is currently active!")
         else:
             await ctx.reply("No active contest at the moment.")
+
+    @commands.command(name="join")
+    async def join(self, ctx):
+        if not self.check_contest_channel(ctx):
+            return
+
+        if not self.contest_active:
+            await ctx.reply("No typing contest is currently active.")
+            return
+
+        if ctx.author in self.participants:
+            await ctx.reply("You are already in the contest.")
+        else:
+            self.participants.add(ctx.author)
+            await ctx.reply(
+                f"{ctx.author.mention} has joined the typing contest!"
+            )
+
+    @commands.command(name="quit")
+    async def quit(self, ctx):
+        if not self.check_contest_channel(ctx):
+            return
+
+        if not self.contest_active:
+            await ctx.reply("No typing contest is currently active.")
+
+        if ctx.author not in self.participants:
+            await ctx.reply("You are not in the contest.")
+        else:
+            self.participants.remove(ctx.author)
+            await ctx.reply(
+                f"{ctx.author.mention} has quit the typing contest!"
+            )
 
     @commands.command(name="commands")
     async def commands(self, ctx):
@@ -85,6 +120,16 @@ class TypingContestBot(commands.Cog):
         embed.add_field(
             name="!status",
             value="Check the status of the typing contest.",
+            inline=False,
+        )
+        embed.add_field(
+            name="!join",
+            value="Join the typing contest.",
+            inline=False,
+        )
+        embed.add_field(
+            name="!quit",
+            value="Quit the typing contest.",
             inline=False,
         )
         embed.add_field(

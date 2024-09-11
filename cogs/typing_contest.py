@@ -7,12 +7,14 @@ from constants import (
     ALREADY_JOINED,
     CONTEST_ALREADY_ACTIVE,
     END_SUCCESS,
+    INVALID_WPM,
     JOIN_SUCCESS,
     NO_ACTIVE_CONTEST,
     NO_PARTICIPANTS,
     NOT_CONTEST_CREATOR,
     NOT_IN_CONTEST,
     QUIT_SUCCESS,
+    ROUND_NOT_STARTED,
     START_SUCCESS,
     STATUS_ACTIVE,
     STATUS_INACTIVE,
@@ -26,7 +28,8 @@ class TypingContestBot(commands.Cog):
         self.contest_creator = None
         self.contest_channel = None
         self.participants = set()
-        self.round = 1
+        self.wpm_results = {}
+        self.round = 0
 
     def check_contest_channel(self, ctx):
         if self.contest_active and ctx.channel != self.contest_channel:
@@ -56,9 +59,8 @@ class TypingContestBot(commands.Cog):
         self.contest_active = True
         self.contest_creator = ctx.author
         self.contest_channel = ctx.channel
-        await ctx.reply(START_SUCCESS)
         typist_role = self.get_typist_role(ctx)
-        await ctx.send(f"{typist_role.mention} Round {self.round} starting!")
+        await ctx.reply(START_SUCCESS.format(typist_role=typist_role.mention))
 
     @commands.command(name="end")
     async def end(self, ctx):
@@ -77,7 +79,8 @@ class TypingContestBot(commands.Cog):
         self.contest_creator = None
         self.contest_channel = None
         self.participants.clear()
-        self.round = 1
+        self.wpm_results = {}
+        self.round = 0
         await ctx.reply(END_SUCCESS)
 
     @commands.command(name="status")
@@ -100,6 +103,7 @@ class TypingContestBot(commands.Cog):
             await ctx.reply(ALREADY_JOINED)
         else:
             self.participants.add(ctx.author)
+            self.wpm_results[ctx.author] = [0] * max(self.round - 1, 0)
             await ctx.reply(JOIN_SUCCESS.format(user=ctx.author.mention))
 
     @commands.command(name="quit")
@@ -114,6 +118,7 @@ class TypingContestBot(commands.Cog):
             await ctx.reply(NOT_IN_CONTEST)
         else:
             self.participants.remove(ctx.author)
+            self.wpm_results.pop(ctx.author)
             await ctx.reply(QUIT_SUCCESS.format(user=ctx.author.mention))
 
     @commands.command(name="list")
@@ -147,15 +152,43 @@ class TypingContestBot(commands.Cog):
         if not self.contest_active:
             await ctx.reply(NO_ACTIVE_CONTEST)
 
-        if not self.contest_creator:
+        if ctx.author != self.contest_creator:
             await ctx.reply(NOT_CONTEST_CREATOR)
             return
 
+        for participant in self.participants:
+            if len(self.wpm_results[participant]) != self.round:
+                self.wpm_results[participant].append(0)
         self.round += 1
         typist_role = self.get_typist_role(ctx)
         await ctx.send(
             f"{typist_role.mention} Get ready! Round {self.round} is starting!"
         )
+
+    @commands.command(name="wpm")
+    async def wpm(self, ctx, wpm: str):
+        if not self.check_contest_channel(ctx):
+            return
+
+        if not self.contest_active:
+            await ctx.reply(NO_ACTIVE_CONTEST)
+            return
+
+        if ctx.author not in self.participants:
+            await ctx.reply(NOT_IN_CONTEST)
+            return
+
+        if self.round == 0:
+            await ctx.reply(ROUND_NOT_STARTED)
+            return
+
+        if not wpm.isdigit() or int(wpm) < 0:
+            await ctx.reply(INVALID_WPM)
+            return
+
+        wpm_value = int(wpm)
+        self.wpm_results[ctx.author].append(wpm_value)
+        await ctx.reply(f"You submitted your WPM: {wpm_value}")
 
     @commands.command(name="commands")
     async def commands(self, ctx):
@@ -195,6 +228,11 @@ class TypingContestBot(commands.Cog):
         embed.add_field(
             name="!next",
             value="Proceed to the next round in the typing contest.",
+            inline=False,
+        )
+        embed.add_field(
+            name="!wpm {wpm}",
+            value="Submit your WPM result for the current round.",
             inline=False,
         )
         embed.add_field(

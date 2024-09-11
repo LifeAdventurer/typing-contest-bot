@@ -102,6 +102,29 @@ class TypingContestBot(commands.Cog):
                 f"{ctx.author.mention} has quit the typing contest!"
             )
 
+    @commands.command(name="list")
+    async def list_participants(self, ctx):
+        if not self.check_contest_channel(ctx):
+            return
+
+        if not self.contest_active:
+            await ctx.reply("No typing contest is currently active.")
+            return
+
+        if not self.participants:
+            await ctx.reply("No participants have joined the contest yet.")
+            return
+
+        participants_list = "\n".join(
+            [participant.mention for participant in self.participants]
+        )
+        embed = discord.Embed(
+            title="Contest Participants",
+            description=participants_list,
+            color=discord.Color.purple(),
+        )
+        await ctx.reply(embed=embed)
+
     @commands.command(name="commands")
     async def commands(self, ctx):
         embed = discord.Embed(
@@ -130,6 +153,11 @@ class TypingContestBot(commands.Cog):
         embed.add_field(
             name="!quit",
             value="Quit the typing contest.",
+            inline=False,
+        )
+        embed.add_field(
+            name="!list",
+            value="Display all current participants in the typing contest.",
             inline=False,
         )
         embed.add_field(

@@ -1,3 +1,5 @@
+import json
+
 import discord
 from discord.ext import commands
 
@@ -24,11 +26,19 @@ class TypingContestBot(commands.Cog):
         self.contest_creator = None
         self.contest_channel = None
         self.participants = set()
+        self.round = 1
 
     def check_contest_channel(self, ctx):
         if self.contest_active and ctx.channel != self.contest_channel:
             return False
         return True
+
+    def get_typist_role(self, ctx):
+        with open("./config/config.json") as file:
+            typist_role_name = json.load(file)["typist_role_name"]
+
+        typist_role = discord.utils.get(ctx.guild.roles, name=typist_role_name)
+        return typist_role
 
     @commands.Cog.listener()
     async def on_ready(self):
@@ -47,6 +57,8 @@ class TypingContestBot(commands.Cog):
         self.contest_creator = ctx.author
         self.contest_channel = ctx.channel
         await ctx.reply(START_SUCCESS)
+        typist_role = self.get_typist_role(ctx)
+        await ctx.send(f"{typist_role.mention} Round {self.round} starting!")
 
     @commands.command(name="end")
     async def end(self, ctx):
@@ -65,6 +77,7 @@ class TypingContestBot(commands.Cog):
         self.contest_creator = None
         self.contest_channel = None
         self.participants.clear()
+        self.round = 1
         await ctx.reply(END_SUCCESS)
 
     @commands.command(name="status")
@@ -126,6 +139,24 @@ class TypingContestBot(commands.Cog):
         )
         await ctx.reply(embed=embed)
 
+    @commands.command(name="next")
+    async def next(self, ctx):
+        if not self.check_contest_channel(ctx):
+            return
+
+        if not self.contest_active:
+            await ctx.reply(NO_ACTIVE_CONTEST)
+
+        if not self.contest_creator:
+            await ctx.reply(NOT_CONTEST_CREATOR)
+            return
+
+        self.round += 1
+        typist_role = self.get_typist_role(ctx)
+        await ctx.send(
+            f"{typist_role.mention} Get ready! Round {self.round} is starting!"
+        )
+
     @commands.command(name="commands")
     async def commands(self, ctx):
         embed = discord.Embed(
@@ -159,6 +190,11 @@ class TypingContestBot(commands.Cog):
         embed.add_field(
             name="!list",
             value="Display all current participants in the typing contest.",
+            inline=False,
+        )
+        embed.add_field(
+            name="!next",
+            value="Proceed to the next round in the typing contest.",
             inline=False,
         )
         embed.add_field(

@@ -45,14 +45,23 @@ class TypingContestBot(commands.Cog):
 
     def get_wpm_result_table(self):
         wpm_result_rows = [
-            ["Typist \\ Round"] + [str(i + 1) for i in range(self.round)]
+            ["Typist \\ Round"]
+            + [str(i + 1) for i in range(self.round)]
+            + ["Avg WPM"]
         ]
 
         for participant, wpm_list in self.wpm_results.items():
             row = [participant.display_name]
-            row.extend([str(wpm) for wpm in wpm_list])
+            row.extend(wpm_list)
+            average_wpm = "NQ"
             if len(row) - 1 < self.round:
                 row.extend(["" for _ in range(self.round - len(row) + 1)])
+            elif len(wpm_list) and "-" not in wpm_list:
+                wpm_int_list = [int(wpm) for wpm in wpm_list]
+                average_wpm = f"{sum(wpm_int_list) / self.round:.2f}"
+
+            row.append(average_wpm)
+
             wpm_result_rows.append(row)
 
         transposed_table = list(zip(*wpm_result_rows))
@@ -135,7 +144,7 @@ class TypingContestBot(commands.Cog):
             await ctx.reply(ALREADY_JOINED)
         else:
             self.participants.add(ctx.author)
-            self.wpm_results[ctx.author] = [0] * max(self.round - 1, 0)
+            self.wpm_results[ctx.author] = ["-"] * max(self.round - 1, 0)
             await ctx.reply(JOIN_SUCCESS.format(user=ctx.author.mention))
 
     @commands.command(name="quit")
@@ -190,7 +199,7 @@ class TypingContestBot(commands.Cog):
 
         for participant in self.participants:
             if len(self.wpm_results[participant]) != self.round:
-                self.wpm_results[participant].append(0)
+                self.wpm_results[participant].append("-")
 
         typist_role = self.get_typist_role(ctx)
         await ctx.send(
@@ -218,15 +227,14 @@ class TypingContestBot(commands.Cog):
             await ctx.reply(ROUND_NOT_STARTED)
             return
 
-        if not wpm.isdigit() or int(wpm) < 0:
+        if not wpm.isdigit() or int(wpm) <= 0:
             await ctx.reply(INVALID_WPM)
             return
 
-        wpm_value = int(wpm)
         if len(self.wpm_results[ctx.author]) != self.round:
-            self.wpm_results[ctx.author].append(wpm_value)
-        self.wpm_results[ctx.author][-1] = wpm_value
-        await ctx.reply(f"You submitted your WPM: {wpm_value}")
+            self.wpm_results[ctx.author].append(wpm)
+        self.wpm_results[ctx.author][-1] = wpm
+        await ctx.reply(f"You submitted your WPM: {wpm}")
 
     @commands.command(name="result")
     async def result(self, ctx):

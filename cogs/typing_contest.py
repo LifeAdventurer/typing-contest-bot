@@ -194,7 +194,7 @@ class TypingContestBot(commands.Cog):
 
         typist_role = self.get_typist_role(ctx)
         await ctx.send(
-            f"{typist_role.mention} WPM result table\n\n```{self.get_wpm_result_table()}```",
+            f"# WPM result table\n\n```{self.get_wpm_result_table()}```",
         )
         self.round += 1
         await ctx.send(
@@ -238,7 +238,7 @@ class TypingContestBot(commands.Cog):
             return
 
         await ctx.reply(
-            f"WPM result table\n\n```{self.get_wpm_result_table()}```"
+            f"# WPM result table\n\n```{self.get_wpm_result_table()}```"
         )
 
     @commands.command(name="commands")

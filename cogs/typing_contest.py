@@ -223,7 +223,9 @@ class TypingContestBot(commands.Cog):
             return
 
         wpm_value = int(wpm)
-        self.wpm_results[ctx.author].append(wpm_value)
+        if len(self.wpm_results[ctx.author]) != self.round:
+            self.wpm_results[ctx.author].append(wpm_value)
+        self.wpm_results[ctx.author][-1] = wpm_value
         await ctx.reply(f"You submitted your WPM: {wpm_value}")
 
     @commands.command(name="result")

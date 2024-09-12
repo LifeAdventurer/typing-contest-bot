@@ -43,6 +43,36 @@ class TypingContestBot(commands.Cog):
         typist_role = discord.utils.get(ctx.guild.roles, name=typist_role_name)
         return typist_role
 
+    def get_wpm_result_table(self):
+        wpm_result_rows = [
+            ["Typist \\ Round"] + [str(i + 1) for i in range(self.round)]
+        ]
+
+        for participant, wpm_list in self.wpm_results.items():
+            row = [participant.display_name]
+            row.extend([str(wpm) for wpm in wpm_list])
+            wpm_result_rows.append(row)
+
+        transposed_table = list(zip(*wpm_result_rows))
+        max_column_lengths = [
+            max(len(item) for item in column) for column in transposed_table
+        ]
+        wpm_result_rows.insert(1, ["-" * len for len in max_column_lengths])
+
+        formatted_rows = [
+            "| "
+            + " | ".join(
+                item.ljust(max_column_lengths[i])
+                if i == 0
+                else item.rjust(max_column_lengths[i])
+                for i, item in enumerate(row)
+            )
+            + " |"
+            for row in wpm_result_rows
+        ]
+
+        return "\n".join(formatted_rows)
+
     @commands.Cog.listener()
     async def on_ready(self):
         print(f"Logged in as {self.bot.user.name}")
@@ -159,8 +189,12 @@ class TypingContestBot(commands.Cog):
         for participant in self.participants:
             if len(self.wpm_results[participant]) != self.round:
                 self.wpm_results[participant].append(0)
-        self.round += 1
+
         typist_role = self.get_typist_role(ctx)
+        await ctx.send(
+            f"{typist_role.mention} WPM result table\n\n```{self.get_wpm_result_table()}```",
+        )
+        self.round += 1
         await ctx.send(
             f"{typist_role.mention} Get ready! Round {self.round} is starting!"
         )
@@ -227,7 +261,7 @@ class TypingContestBot(commands.Cog):
         )
         embed.add_field(
             name="!next",
-            value="Proceed to the next round in the typing contest.",
+            value="Proceed to the next round in the typing contest and view the current WPM results.",
             inline=False,
         )
         embed.add_field(

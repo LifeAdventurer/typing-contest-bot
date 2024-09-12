@@ -51,6 +51,8 @@ class TypingContestBot(commands.Cog):
         for participant, wpm_list in self.wpm_results.items():
             row = [participant.display_name]
             row.extend([str(wpm) for wpm in wpm_list])
+            if len(row) - 1 < self.round:
+                row.extend(["" for _ in range(self.round - len(row) + 1)])
             wpm_result_rows.append(row)
 
         transposed_table = list(zip(*wpm_result_rows))
@@ -224,6 +226,19 @@ class TypingContestBot(commands.Cog):
         self.wpm_results[ctx.author].append(wpm_value)
         await ctx.reply(f"You submitted your WPM: {wpm_value}")
 
+    @commands.command(name="result")
+    async def result(self, ctx):
+        if not self.check_contest_channel(ctx):
+            return
+
+        if not self.contest_active:
+            await ctx.reply(NO_ACTIVE_CONTEST)
+            return
+
+        await ctx.reply(
+            f"WPM result table\n\n```{self.get_wpm_result_table()}```"
+        )
+
     @commands.command(name="commands")
     async def commands(self, ctx):
         embed = discord.Embed(
@@ -267,6 +282,11 @@ class TypingContestBot(commands.Cog):
         embed.add_field(
             name="!wpm {wpm}",
             value="Submit your WPM result for the current round.",
+            inline=False,
+        )
+        embed.add_field(
+            name="!result",
+            value="View the WPM results table at any time, not just after advancing rounds.",
             inline=False,
         )
         embed.add_field(

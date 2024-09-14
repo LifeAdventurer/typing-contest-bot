@@ -4,6 +4,7 @@ import discord
 from discord.ext import commands
 
 from constants import (
+    ALL_SUBMITTED_SUCCESS,
     ALREADY_JOINED,
     CONTEST_ALREADY_ACTIVE,
     END_SUCCESS,
@@ -15,6 +16,7 @@ from constants import (
     NOT_IN_CONTEST,
     QUIT_SUCCESS,
     RANKING_EMOJIS,
+    REMINDER_SUCCESS,
     ROUND_NOT_STARTED,
     START_SUCCESS,
     STATUS_ACTIVE,
@@ -284,6 +286,26 @@ class TypingContestBot(commands.Cog):
             f"## WPM result table\n\n```{self.get_wpm_result_table()}```"
         )
 
+    @commands.command(name="remind")
+    async def remind(self, ctx):
+        if not self.check_contest_channel(ctx):
+            return
+
+        pending_participants = [
+            participant.mention
+            for participant in self.participants
+            if len(self.wpm_results[participant]) < self.round
+        ]
+
+        if pending_participants:
+            reminder_message = REMINDER_SUCCESS.format(
+                pending_participants="\n".join(pending_participants)
+            )
+        else:
+            reminder_message = ALL_SUBMITTED_SUCCESS
+
+        await ctx.send(reminder_message)
+
     @commands.command(name="commands")
     async def commands(self, ctx):
         embed = discord.Embed(
@@ -332,6 +354,11 @@ class TypingContestBot(commands.Cog):
         embed.add_field(
             name="!result",
             value="View the WPM results table at any time, not just after advancing rounds.",
+            inline=False,
+        )
+        embed.add_field(
+            name="!remind",
+            value="Sends a reminder to participants who haven't submitted their WPM for the current round. Use this if the round has ended and some participants have not yet submitted their results.",
             inline=False,
         )
         embed.add_field(

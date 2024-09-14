@@ -1,6 +1,6 @@
 START_SUCCESS = "The typing contest has started! {typist_role} Please join the contest using `!join`."
 CONTEST_ALREADY_ACTIVE = "The typing contest is already active!"
-END_SUCCESS = "The typing contest has ended!"
+END_SUCCESS = "{typist_role} The typing contest has ended!"
 NO_ACTIVE_CONTEST = "No typing contest is currently active."
 NOT_CONTEST_CREATOR = "You are not authorized to end the contest. Only the user who started it can end it."
 STATUS_ACTIVE = "A typing contest is currently active!"

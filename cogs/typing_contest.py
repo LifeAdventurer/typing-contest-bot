@@ -126,7 +126,8 @@ class TypingContestBot(commands.Cog):
             await ctx.reply(NOT_CONTEST_CREATOR)
             return
 
-        await ctx.reply(END_SUCCESS)
+        typist_role = self.get_typist_role(ctx)
+        await ctx.reply(END_SUCCESS.format(typist_role=typist_role.mention))
 
         for participant in self.participants:
             if len(self.wpm_results[participant]) != self.round:

@@ -148,7 +148,7 @@ class TypingContestBot(commands.Cog):
             top_three_result = "No participants with valid WPM data."
 
         await ctx.send(
-            f"# WPM result table\n\n```{wpm_result_table}```\n{top_three_result}",
+            f"## WPM result table\n\n```{wpm_result_table}```\n{top_three_result}",
         )
 
         self.contest_active = False
@@ -238,7 +238,7 @@ class TypingContestBot(commands.Cog):
 
         typist_role = self.get_typist_role(ctx)
         await ctx.send(
-            f"# WPM result table\n\n```{self.get_wpm_result_table()}```",
+            f"## WPM result table\n\n```{self.get_wpm_result_table()}```",
         )
         self.round += 1
         await ctx.send(
@@ -281,7 +281,7 @@ class TypingContestBot(commands.Cog):
             return
 
         await ctx.reply(
-            f"# WPM result table\n\n```{self.get_wpm_result_table()}```"
+            f"## WPM result table\n\n```{self.get_wpm_result_table()}```"
         )
 
     @commands.command(name="commands")

@@ -12,3 +12,4 @@ NOT_IN_CONTEST = "You are not in the contest."
 NO_PARTICIPANTS = "No participants have joined the contest yet."
 INVALID_WPM = "Please provide a valid positive integer for WPM."
 ROUND_NOT_STARTED = "No round has been started yet."
+RANKING_EMOJIS = [":first_place:", ":second_place", ":third_place:"]

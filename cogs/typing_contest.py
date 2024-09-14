@@ -14,6 +14,7 @@ from constants import (
     NOT_CONTEST_CREATOR,
     NOT_IN_CONTEST,
     QUIT_SUCCESS,
+    RANKING_EMOJIS,
     ROUND_NOT_STARTED,
     START_SUCCESS,
     STATUS_ACTIVE,
@@ -28,8 +29,10 @@ class TypingContestBot(commands.Cog):
         self.contest_creator = None
         self.contest_channel = None
         self.participants = set()
-        self.wpm_results = {}
         self.round = 0
+        self.wpm_results = {}
+        self.top_three_participants = []
+        self.ranking_emojis = RANKING_EMOJIS
 
     def check_contest_channel(self, ctx):
         if self.contest_active and ctx.channel != self.contest_channel:
@@ -50,6 +53,8 @@ class TypingContestBot(commands.Cog):
             + ["Avg WPM"]
         ]
 
+        participant_averages = {}
+
         for participant, wpm_list in self.wpm_results.items():
             row = [participant.display_name]
             row.extend(wpm_list)
@@ -59,10 +64,15 @@ class TypingContestBot(commands.Cog):
             elif len(wpm_list) and "-" not in wpm_list:
                 wpm_int_list = [int(wpm) for wpm in wpm_list]
                 average_wpm = f"{sum(wpm_int_list) / self.round:.2f}"
+                participant_averages[participant] = float(average_wpm)
 
             row.append(average_wpm)
 
             wpm_result_rows.append(row)
+
+        self.top_three_participants = sorted(
+            participant_averages.items(), key=lambda x: x[1], reverse=True
+        )[:3]
 
         transposed_table = list(zip(*wpm_result_rows))
         max_column_lengths = [
@@ -116,13 +126,37 @@ class TypingContestBot(commands.Cog):
             await ctx.reply(NOT_CONTEST_CREATOR)
             return
 
+        await ctx.reply(END_SUCCESS)
+
+        for participant in self.participants:
+            if len(self.wpm_results[participant]) != self.round:
+                self.wpm_results[participant].append("-")
+
+        wpm_result_table = self.get_wpm_result_table()
+
+        if self.top_three_participants:
+            top_three_result = "Top Participants by Avg WPM:\n" + "\n".join(
+                [
+                    f"{self.ranking_emojis[i]} {participant.mention} - {average_wpm:.2f} WPM"
+                    for i, (participant, average_wpm) in enumerate(
+                        self.top_three_participants
+                    )
+                ]
+            )
+        else:
+            top_three_result = "No participants with valid WPM data."
+
+        await ctx.send(
+            f"# WPM result table\n\n```{wpm_result_table}```\n{top_three_result}",
+        )
+
         self.contest_active = False
         self.contest_creator = None
         self.contest_channel = None
         self.participants.clear()
-        self.wpm_results = {}
         self.round = 0
-        await ctx.reply(END_SUCCESS)
+        self.wpm_results = {}
+        self.top_three_participants = []
 
     @commands.command(name="status")
     async def status(self, ctx):

@@ -15,6 +15,7 @@ class BotSetup:
         self.token = token
         self.intents = discord.Intents.default()
         self.intents.message_content = True
+        self.intents.members = True
         self.bot = commands.Bot(command_prefix="!", intents=self.intents)
 
     async def setup(self):

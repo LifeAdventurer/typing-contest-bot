@@ -10,6 +10,9 @@ from constants import (
     END_SUCCESS,
     INVALID_WPM,
     JOIN_SUCCESS,
+    MEMBER_NOT_IN_CONTEST,
+    MEMBER_NOT_IN_GUILD,
+    MEMBER_REMOVED_SUCCESS,
     NO_ACTIVE_CONTEST,
     NO_PARTICIPANTS,
     NOT_CONTEST_CREATOR,
@@ -306,6 +309,27 @@ class TypingContestBot(commands.Cog):
 
         await ctx.send(reminder_message)
 
+    @commands.command(name="remove")
+    async def remove(self, ctx, member: discord.Member):
+        if not self.check_contest_channel(ctx):
+            return
+
+        if ctx.author != self.contest_creator:
+            await ctx.reply(NOT_CONTEST_CREATOR)
+            return
+
+        if member not in ctx.guild.members:
+            await ctx.reply(MEMBER_NOT_IN_GUILD.format(member=member))
+            return
+
+        if member not in self.participants:
+            await ctx.reply(MEMBER_NOT_IN_CONTEST.format(member=member))
+            return
+
+        self.participants.remove(member)
+        self.wpm_results.pop(member, None)
+        await ctx.reply(MEMBER_REMOVED_SUCCESS.format(member=member.mention))
+
     @commands.command(name="commands")
     async def commands(self, ctx):
         embed = discord.Embed(
@@ -359,6 +383,11 @@ class TypingContestBot(commands.Cog):
         embed.add_field(
             name="!remind",
             value="Sends a reminder to participants who haven't submitted their WPM for the current round. Use this if the round has ended and some participants have not yet submitted their results.",
+            inline=False,
+        )
+        embed.add_field(
+            name="!remove",
+            value="Remove a participant from the typing contest. Only the contest creator can use this.",
             inline=False,
         )
         embed.add_field(

@@ -13,6 +13,11 @@ ALREADY_JOINED = "You are already in the contest."
 NOT_IN_CONTEST = "You are not in the contest."
 NOT_CONTEST_CREATOR = "You are not authorized to end the contest. Only the user who started it can end it."
 NO_PARTICIPANTS = "No participants have joined the contest yet."
+MEMBER_NOT_IN_GUILD = (
+    "{member} is no longer in the server or is not a valid member."
+)
+MEMBER_NOT_IN_CONTEST = "{member} is not in the contest."
+MEMBER_REMOVED_SUCCESS = "{member} has been removed from the contest."
 
 # Round and WPM Messages
 INVALID_WPM = "Please provide a valid positive integer for WPM."

@@ -6,13 +6,14 @@ from discord.ext import commands
 from constants import (
     ALL_SUBMITTED_SUCCESS,
     ALREADY_JOINED,
+    BAN_SUCCESS,
+    BANNED_USER_TRY_JOIN,
     CONTEST_ALREADY_ACTIVE,
     END_SUCCESS,
     INVALID_WPM,
     JOIN_SUCCESS,
     MEMBER_NOT_IN_CONTEST,
     MEMBER_NOT_IN_GUILD,
-    MEMBER_REMOVED_SUCCESS,
     NO_ACTIVE_CONTEST,
     NO_PARTICIPANTS,
     NOT_CONTEST_CREATOR,
@@ -20,6 +21,7 @@ from constants import (
     QUIT_SUCCESS,
     RANKING_EMOJIS,
     REMINDER_SUCCESS,
+    REMOVE_SUCCESS,
     ROUND_NOT_STARTED,
     START_SUCCESS,
     STATUS_ACTIVE,
@@ -34,6 +36,7 @@ class TypingContestBot(commands.Cog):
         self.contest_creator = None
         self.contest_channel = None
         self.participants = set()
+        self.banned_participants = set()
         self.round = 0
         self.wpm_results = {}
         self.top_three_participants = []
@@ -160,6 +163,7 @@ class TypingContestBot(commands.Cog):
         self.contest_creator = None
         self.contest_channel = None
         self.participants.clear()
+        self.banned_participants.clear()
         self.round = 0
         self.wpm_results = {}
         self.top_three_participants = []
@@ -178,6 +182,12 @@ class TypingContestBot(commands.Cog):
 
         if not self.contest_active:
             await ctx.reply(NO_ACTIVE_CONTEST)
+            return
+
+        if ctx.author in self.banned_participants:
+            await ctx.reply(
+                BANNED_USER_TRY_JOIN.format(user=ctx.author.mention)
+            )
             return
 
         if ctx.author in self.participants:
@@ -328,7 +338,29 @@ class TypingContestBot(commands.Cog):
 
         self.participants.remove(member)
         self.wpm_results.pop(member, None)
-        await ctx.reply(MEMBER_REMOVED_SUCCESS.format(member=member.mention))
+        await ctx.reply(REMOVE_SUCCESS.format(member=member.mention))
+
+    @commands.command(name="ban")
+    async def ban(self, ctx, member: discord.Member):
+        if not self.check_contest_channel(ctx):
+            return
+
+        if ctx.author != self.contest_creator:
+            await ctx.reply(NOT_CONTEST_CREATOR)
+            return
+
+        if member not in ctx.guild.members:
+            await ctx.reply(MEMBER_NOT_IN_GUILD.format(member=member))
+            return
+
+        if member not in self.participants:
+            await ctx.reply(MEMBER_NOT_IN_CONTEST.format(member=member))
+            return
+
+        self.participants.remove(member)
+        self.wpm_results.pop(member, None)
+        self.banned_participants.add(member)
+        await ctx.reply(BAN_SUCCESS.format(user=member.mention))
 
     @commands.command(name="commands")
     async def commands(self, ctx):
@@ -386,8 +418,13 @@ class TypingContestBot(commands.Cog):
             inline=False,
         )
         embed.add_field(
-            name="!remove",
+            name="!remove {member}",
             value="Remove a participant from the typing contest. Only the contest creator can use this.",
+            inline=False,
+        )
+        embed.add_field(
+            name="!ban {member}",
+            value="Ban a participant from the typing contest. Once banned, they cannot join again. Only the contest creator can use this.",
             inline=False,
         )
         embed.add_field(

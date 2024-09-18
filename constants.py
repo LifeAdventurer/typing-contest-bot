@@ -17,7 +17,9 @@ MEMBER_NOT_IN_GUILD = (
     "{member} is no longer in the server or is not a valid member."
 )
 MEMBER_NOT_IN_CONTEST = "{member} is not in the contest."
-MEMBER_REMOVED_SUCCESS = "{member} has been removed from the contest."
+REMOVE_SUCCESS = "{member} has been removed from the contest."
+BAN_SUCCESS = "{user} has been banned from the contest."
+BANNED_USER_TRY_JOIN = "{user}, you are banned from joining the contest."
 
 # Round and WPM Messages
 INVALID_WPM = "Please provide a valid positive integer for WPM."

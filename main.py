@@ -1,8 +1,18 @@
+import argparse
 import asyncio
 import json
+import logging
 
 import discord
 from discord.ext import commands
+
+
+def parse_args():
+    parser = argparse.ArgumentParser(description="Typing Contest Discord Bot")
+    parser.add_argument(
+        "--debug", action="store_true", help="Enable debug mode"
+    )
+    return parser.parse_args()
 
 
 def load_token() -> str:
@@ -11,12 +21,21 @@ def load_token() -> str:
 
 
 class BotSetup:
-    def __init__(self, token):
+    def __init__(self, token, debug=False):
         self.token = token
+        self.debug = debug
         self.intents = discord.Intents.default()
         self.intents.message_content = True
         self.intents.members = True
         self.bot = commands.Bot(command_prefix="!", intents=self.intents)
+        self.setup_logging()
+
+    def setup_logging(self):
+        logger = logging.getLogger("discord")
+        logger.setLevel(logging.DEBUG if self.debug else logging.INFO)
+        handler = logging.StreamHandler()
+        handler.setFormatter(discord.utils._ColourFormatter())
+        logger.addHandler(handler)
 
     async def setup(self):
         await self.bot.load_extension("cogs.typing_contest")
@@ -27,5 +46,6 @@ class BotSetup:
 
 
 if __name__ == "__main__":
-    bot_instance = BotSetup(load_token())
+    args = parse_args()
+    bot_instance = BotSetup(load_token(), debug=args.debug)
     asyncio.run(bot_instance.run())

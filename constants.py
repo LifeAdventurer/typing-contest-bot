@@ -26,8 +26,8 @@ INVALID_WPM = "Please provide a valid positive integer for WPM."
 ROUND_NOT_STARTED = "No round has been started yet."
 REMINDER_SUCCESS = "The following participants haven't submitted their WPM yet:\n{pending_participants}\nPlease submit your WPM using `!wpm {{wpm}}`"
 ALL_SUBMITTED_SUCCESS = (
-    "All participants have submitted their WPM for this rounrd."
+    "All participants have submitted their WPM for this round."
 )
 
 # Ranking and Emojis
-RANKING_EMOJIS = [":first_place:", ":second_place", ":third_place:"]
+RANKING_EMOJIS = [":first_place:", ":second_place:", ":third_place:"]

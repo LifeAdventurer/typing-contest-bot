@@ -43,6 +43,25 @@ class TypingContestBot(commands.Cog):
         self.top_three_participants = []
         self.ranking_emojis = RANKING_EMOJIS
 
+    def load_config(self):
+        with open("./config/config.json") as file:
+            return json.load(file)
+
+    def update_contest_held(self):
+        config = self.load_config()
+
+        config["contests_held"] += 1
+
+        with open("./config/config.json", "w") as file:
+            json.dump(config, file, indent=4)
+
+    async def update_presence(self):
+        config = self.load_config()
+        contests_held = config["contests_held"]
+        presence_message = f"The bot held {contests_held} contests."
+        activity = discord.CustomActivity(name=presence_message)
+        await self.bot.change_presence(activity=activity)
+
     def check_contest_channel(self, ctx):
         if self.contest_active and ctx.channel != self.contest_channel:
             return False
@@ -108,6 +127,7 @@ class TypingContestBot(commands.Cog):
     @commands.Cog.listener()
     async def on_ready(self):
         print(f"Logged in as {self.bot.user.name}")
+        await self.update_presence()
 
     @commands.command(name="start")
     async def start(self, ctx):
@@ -170,6 +190,8 @@ class TypingContestBot(commands.Cog):
         self.round = 0
         self.wpm_results = {}
         self.top_three_participants = []
+        self.update_contest_held()
+        await self.update_presence()
 
     @commands.command(name="status")
     async def status(self, ctx):

@@ -2,6 +2,7 @@ import argparse
 import asyncio
 import json
 import logging
+import os
 
 import discord
 from discord.ext import commands
@@ -17,9 +18,29 @@ def parse_args():
     return parser.parse_args()
 
 
-def load_token() -> str:
-    with open("./config/config.json") as file:
-        return json.load(file)["token"]
+def load_config(file_path: str):
+    if not os.path.exists(file_path):
+        raise FileNotFoundError(f"{file_path} does not exist.")
+
+    with open(file_path) as file:
+        config = json.load(file)
+
+    required_keys = {
+        "token": str,
+        "typist_role_name": str,
+        "testing_role_name": str,
+        "contests_held": int,
+    }
+
+    for key, expected_type in required_keys.items():
+        if key not in config:
+            raise KeyError(f"Missing key in config: {key}")
+        if not isinstance(config[key], expected_type):
+            raise TypeError(
+                f"Incorrect type for key '{key}': Expected {expected_type.__name__}, got {type(config[key]).__name__}"
+            )
+
+    return config
 
 
 class BotSetup:
@@ -49,5 +70,6 @@ class BotSetup:
 
 if __name__ == "__main__":
     args = parse_args()
-    bot_instance = BotSetup(load_token(), debug=args.debug)
+    config = load_config("./config/config.json")
+    bot_instance = BotSetup(config["token"], debug=args.debug)
     asyncio.run(bot_instance.run())

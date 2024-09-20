@@ -74,6 +74,22 @@ To start the bot, run:
 python main.py # Or `poetry run python main.py` if using Poetry
 ```
 
+## Commands
+
+- `!start`: Start a typing contest in the current channel.
+- `!end`: End the current typing contest.
+- `!status`: Check the status of the typing contest.
+- `!join`: Join the typing contest.
+- `!quit`: Quit the typing contest.
+- `!list`: Display all current participants in the typing contest.
+- `!next`: Proceed to the next round in the typing contest and view the current WPM results.
+- `!wpm {wpm}`: Submit your WPM result for the current round.
+- `!result`: View the WPM results table at any time, not just after advancing rounds.
+- `!remind`: Sends a reminder to participants who haven't submitted their WPM for the current round. Use this if the round has ended and some participants have not yet submitted their results.
+- `!remove {member}`: Remove a participant from the typing contest. Only the contest creator can use this.
+- `!ban {member}`: Ban a participant from the typing contest. Once banned, they cannot join again. Only the contest creator can use this.
+- `!commands`: Show this list of commands.
+
 ## License
 
 This project is licensed under the GNU General Public License v3.0 (GPL-3.0). See the [`LICENSE`](./LICENSE) file for details.

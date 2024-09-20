@@ -6,6 +6,8 @@ import logging
 import discord
 from discord.ext import commands
 
+from cogs.typing_contest import TypingContestBot
+
 
 def parse_args():
     parser = argparse.ArgumentParser(description="Typing Contest Discord Bot")
@@ -38,7 +40,7 @@ class BotSetup:
         logger.addHandler(handler)
 
     async def setup(self):
-        await self.bot.load_extension("cogs.typing_contest")
+        await self.bot.add_cog(TypingContestBot(self.bot, self.debug))
 
     async def run(self):
         await self.setup()

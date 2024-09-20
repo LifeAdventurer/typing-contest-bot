@@ -30,8 +30,9 @@ from constants import (
 
 
 class TypingContestBot(commands.Cog):
-    def __init__(self, bot):
+    def __init__(self, bot, debug):
         self.bot = bot
+        self.debug = debug
         self.contest_active = False
         self.contest_creator = None
         self.contest_channel = None
@@ -49,9 +50,11 @@ class TypingContestBot(commands.Cog):
 
     def get_typist_role(self, ctx):
         with open("./config/config.json") as file:
-            typist_role_name = json.load(file)["typist_role_name"]
+            role_name = json.load(file)[
+                "testing_role_name" if self.debug else "typist_role_name"
+            ]
 
-        typist_role = discord.utils.get(ctx.guild.roles, name=typist_role_name)
+        typist_role = discord.utils.get(ctx.guild.roles, name=role_name)
         return typist_role
 
     def get_wpm_result_table(self):
@@ -431,7 +434,3 @@ class TypingContestBot(commands.Cog):
             name="!commands", value="Show this list of commands.", inline=False
         )
         await ctx.reply(embed=embed)
-
-
-async def setup(bot):
-    await bot.add_cog(TypingContestBot(bot))

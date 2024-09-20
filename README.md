@@ -62,7 +62,8 @@ Create a `config.json` file under `./config/`:
 ```json
 {
     "token": "your-discord-bot-token",
-    "typist_role_name": "your-server-typist-role"
+    "typist_role_name": "your-server-typist-role",
+    "testing_role_name": "your-server-testing-role"
 }
 ```
 

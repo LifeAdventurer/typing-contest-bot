@@ -10,7 +10,7 @@ from discord.ext import commands
 from cogs.typing_contest import TypingContestBot
 
 
-def parse_args():
+def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser(description="Typing Contest Discord Bot")
     parser.add_argument(
         "--debug", action="store_true", help="Enable debug mode"
@@ -18,7 +18,7 @@ def parse_args():
     return parser.parse_args()
 
 
-def load_config(file_path: str):
+def load_config(file_path: str) -> dict:
     if not os.path.exists(file_path):
         raise FileNotFoundError(f"{file_path} does not exist.")
 
@@ -44,26 +44,26 @@ def load_config(file_path: str):
 
 
 class BotSetup:
-    def __init__(self, token, debug=False):
-        self.token = token
-        self.debug = debug
+    def __init__(self, token: str, debug: bool = False) -> None:
+        self.token: str = token
+        self.debug: bool = debug
         self.intents = discord.Intents.default()
         self.intents.message_content = True
         self.intents.members = True
         self.bot = commands.Bot(command_prefix="!", intents=self.intents)
         self.setup_logging()
 
-    def setup_logging(self):
+    def setup_logging(self) -> None:
         logger = logging.getLogger("discord")
         logger.setLevel(logging.DEBUG if self.debug else logging.INFO)
         handler = logging.StreamHandler()
         handler.setFormatter(discord.utils._ColourFormatter())
         logger.addHandler(handler)
 
-    async def setup(self):
+    async def setup(self) -> None:
         await self.bot.add_cog(TypingContestBot(self.bot, self.debug))
 
-    async def run(self):
+    async def run(self) -> None:
         await self.setup()
         await self.bot.start(self.token)
 

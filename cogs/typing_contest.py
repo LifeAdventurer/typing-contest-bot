@@ -30,24 +30,24 @@ from constants import (
 
 
 class TypingContestBot(commands.Cog):
-    def __init__(self, bot, debug):
-        self.bot = bot
-        self.debug = debug
-        self.contest_active = False
-        self.contest_creator = None
-        self.contest_channel = None
-        self.participants = set()
-        self.banned_participants = set()
-        self.round = 0
-        self.wpm_results = {}
-        self.top_three_participants = []
-        self.ranking_emojis = RANKING_EMOJIS
+    def __init__(self, bot: commands.Bot, debug: bool) -> None:
+        self.bot: commands.Bot = bot
+        self.debug: bool = debug
+        self.contest_active: bool = False
+        self.contest_creator: discord.Member | None = None
+        self.contest_channel: discord.TextChannel | None = None
+        self.participants: set[discord.Member] = set()
+        self.banned_participants: set[discord.Member] = set()
+        self.round: int = 0
+        self.wpm_results: dict[discord.Member, list[str]] = {}
+        self.top_three_participants: list[tuple[discord.Member, float]] = []
+        self.ranking_emojis: list[str] = RANKING_EMOJIS
 
-    def load_config(self):
+    def load_config(self) -> dict:
         with open("./config/config.json") as file:
             return json.load(file)
 
-    def update_contest_held(self):
+    def update_contest_held(self) -> None:
         config = self.load_config()
 
         config["contests_held"] += 1
@@ -55,19 +55,19 @@ class TypingContestBot(commands.Cog):
         with open("./config/config.json", "w") as file:
             json.dump(config, file, indent=4)
 
-    async def update_presence(self):
+    async def update_presence(self) -> None:
         config = self.load_config()
         contests_held = config["contests_held"]
         presence_message = f"The bot held {contests_held} contests."
         activity = discord.CustomActivity(name=presence_message)
         await self.bot.change_presence(activity=activity)
 
-    def check_contest_channel(self, ctx):
+    def check_contest_channel(self, ctx) -> bool:
         if self.contest_active and ctx.channel != self.contest_channel:
             return False
         return True
 
-    def get_typist_role(self, ctx):
+    def get_typist_role(self, ctx) -> discord.Role | None:
         with open("./config/config.json") as file:
             role_name = json.load(file)[
                 "testing_role_name" if self.debug else "typist_role_name"
@@ -76,14 +76,14 @@ class TypingContestBot(commands.Cog):
         typist_role = discord.utils.get(ctx.guild.roles, name=role_name)
         return typist_role
 
-    def get_wpm_result_table(self):
+    def get_wpm_result_table(self) -> str:
         wpm_result_rows = [
             ["Typist \\ Round"]
             + [str(i + 1) for i in range(self.round)]
             + ["Avg WPM"]
         ]
 
-        participant_averages = {}
+        participant_averages: dict[discord.Member, float] = {}
 
         for participant, wpm_list in self.wpm_results.items():
             row = [participant.display_name]
@@ -125,12 +125,12 @@ class TypingContestBot(commands.Cog):
         return "\n".join(formatted_rows)
 
     @commands.Cog.listener()
-    async def on_ready(self):
+    async def on_ready(self) -> None:
         print(f"Logged in as {self.bot.user.name}")
         await self.update_presence()
 
     @commands.command(name="start")
-    async def start(self, ctx):
+    async def start(self, ctx) -> None:
         if not self.check_contest_channel(ctx):
             return
 
@@ -145,7 +145,7 @@ class TypingContestBot(commands.Cog):
         await ctx.reply(START_SUCCESS.format(typist_role=typist_role.mention))
 
     @commands.command(name="end")
-    async def end(self, ctx):
+    async def end(self, ctx) -> None:
         if not self.check_contest_channel(ctx):
             return
 
@@ -194,14 +194,14 @@ class TypingContestBot(commands.Cog):
         await self.update_presence()
 
     @commands.command(name="status")
-    async def status(self, ctx):
+    async def status(self, ctx) -> None:
         if self.contest_active:
             await ctx.reply(STATUS_ACTIVE)
         else:
             await ctx.reply(STATUS_INACTIVE)
 
     @commands.command(name="join")
-    async def join(self, ctx):
+    async def join(self, ctx) -> None:
         if not self.check_contest_channel(ctx):
             return
 
@@ -223,7 +223,7 @@ class TypingContestBot(commands.Cog):
             await ctx.reply(JOIN_SUCCESS.format(user=ctx.author.mention))
 
     @commands.command(name="quit")
-    async def quit(self, ctx):
+    async def quit(self, ctx) -> None:
         if not self.check_contest_channel(ctx):
             return
 
@@ -238,7 +238,7 @@ class TypingContestBot(commands.Cog):
             await ctx.reply(QUIT_SUCCESS.format(user=ctx.author.mention))
 
     @commands.command(name="list")
-    async def list_participants(self, ctx):
+    async def list_participants(self, ctx) -> None:
         if not self.check_contest_channel(ctx):
             return
 
@@ -261,7 +261,7 @@ class TypingContestBot(commands.Cog):
         await ctx.reply(embed=embed)
 
     @commands.command(name="next")
-    async def next(self, ctx):
+    async def next(self, ctx) -> None:
         if not self.check_contest_channel(ctx):
             return
 
@@ -286,7 +286,7 @@ class TypingContestBot(commands.Cog):
         )
 
     @commands.command(name="wpm")
-    async def wpm(self, ctx, wpm: str):
+    async def wpm(self, ctx, wpm: str) -> None:
         if not self.check_contest_channel(ctx):
             return
 
@@ -312,7 +312,7 @@ class TypingContestBot(commands.Cog):
         await ctx.reply(f"You submitted your WPM: {wpm}")
 
     @commands.command(name="result")
-    async def result(self, ctx):
+    async def result(self, ctx) -> None:
         if not self.check_contest_channel(ctx):
             return
 
@@ -325,7 +325,7 @@ class TypingContestBot(commands.Cog):
         )
 
     @commands.command(name="remind")
-    async def remind(self, ctx):
+    async def remind(self, ctx) -> None:
         if not self.check_contest_channel(ctx):
             return
 
@@ -345,7 +345,7 @@ class TypingContestBot(commands.Cog):
         await ctx.send(reminder_message)
 
     @commands.command(name="remove")
-    async def remove(self, ctx, member: discord.Member):
+    async def remove(self, ctx, member: discord.Member) -> None:
         if not self.check_contest_channel(ctx):
             return
 
@@ -366,7 +366,7 @@ class TypingContestBot(commands.Cog):
         await ctx.reply(REMOVE_SUCCESS.format(member=member.mention))
 
     @commands.command(name="ban")
-    async def ban(self, ctx, member: discord.Member):
+    async def ban(self, ctx, member: discord.Member) -> None:
         if not self.check_contest_channel(ctx):
             return
 
@@ -388,7 +388,7 @@ class TypingContestBot(commands.Cog):
         await ctx.reply(BAN_SUCCESS.format(user=member.mention))
 
     @commands.command(name="commands")
-    async def commands(self, ctx):
+    async def commands(self, ctx) -> None:
         embed = discord.Embed(
             title="Typing Contest Bot Commands",
             description="Here are the available commands:",

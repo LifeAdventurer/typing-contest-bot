@@ -8,6 +8,7 @@ from constants import (
     ALREADY_JOINED,
     BAN_SUCCESS,
     BANNED_USER_TRY_JOIN,
+    CHECKMARK_EMOJI,
     CONTEST_ALREADY_ACTIVE,
     END_SUCCESS,
     INVALID_WPM,
@@ -409,7 +410,9 @@ class TypingContestBot(commands.Cog):
         """Submit WPM result for the current round.
 
         This command allows a participant to submit their WPM result for the
-        current round. The result must be a positive integer.
+        current round. The result must be a positive integer. If the submission
+        is valid, the bot will react to the user's message with a checkmark
+        emoji.
 
         Args:
             ctx: The command context.
@@ -437,7 +440,7 @@ class TypingContestBot(commands.Cog):
         if len(self.wpm_results[ctx.author]) != self.round:
             self.wpm_results[ctx.author].append(wpm)
         self.wpm_results[ctx.author][-1] = wpm
-        await ctx.reply(f"You submitted your WPM: {wpm}")
+        await ctx.message.add_reaction(CHECKMARK_EMOJI)
 
     @commands.command(name="result")
     async def result(self, ctx) -> None:

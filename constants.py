@@ -11,7 +11,9 @@ JOIN_SUCCESS = "{user} has joined the typing contest!"
 QUIT_SUCCESS = "{user} has quit the typing contest!"
 ALREADY_JOINED = "You are already in the contest."
 NOT_IN_CONTEST = "You are not in the contest."
-NOT_CONTEST_CREATOR = "You are not authorized to end the contest. Only the user who started it can end it."
+NOT_CONTEST_CREATOR = (
+    "You are not authorized to use this command. Only the contest creator can."
+)
 NO_PARTICIPANTS = "No participants have joined the contest yet."
 MEMBER_NOT_IN_GUILD = (
     "{member} is no longer in the server or is not a valid member."

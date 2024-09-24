@@ -8,6 +8,7 @@ import discord
 from discord.ext import commands
 
 from cogs.typing_contest import TypingContestBot
+from constants import CONFIG_JSON_FILE_PATH
 
 
 def parse_args() -> argparse.Namespace:
@@ -113,7 +114,7 @@ if __name__ == "__main__":
     args = parse_args()
 
     # Load configuration from JSON file
-    config = load_config("./config/config.json")
+    config = load_config(CONFIG_JSON_FILE_PATH)
 
     # Initialize and run the bot
     bot_instance = BotSetup(config["token"], debug=args.debug)

@@ -34,3 +34,6 @@ ALL_SUBMITTED_SUCCESS = (
 # Ranking and Emojis
 RANKING_EMOJIS = [":first_place:", ":second_place:", ":third_place:"]
 CHECKMARK_EMOJI = "\u2705"  # \u2705 is equivalent to :white_check_mark: emoji
+
+# File Paths
+CONFIG_JSON_FILE_PATH = "./config/config.json"

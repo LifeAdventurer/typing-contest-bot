@@ -9,6 +9,7 @@ from constants import (
     BAN_SUCCESS,
     BANNED_USER_TRY_JOIN,
     CHECKMARK_EMOJI,
+    CONFIG_JSON_FILE_PATH,
     CONTEST_ALREADY_ACTIVE,
     END_SUCCESS,
     INVALID_WPM,
@@ -75,14 +76,14 @@ class TypingContestBot(commands.Cog):
         Returns:
             dict: The loaded configuration as a dictionary.
         """
-        with open("./config/config.json") as file:
+        with open(CONFIG_JSON_FILE_PATH) as file:
             return json.load(file)
 
     def update_contest_held(self) -> None:
         """Increment and update the total number of contests held in the config file."""
         config = self.load_config()
         config["contests_held"] += 1
-        with open("./config/config.json", "w") as file:
+        with open(CONFIG_JSON_FILE_PATH, "w") as file:
             json.dump(config, file, indent=4)
 
     async def update_presence(self) -> None:
@@ -102,9 +103,7 @@ class TypingContestBot(commands.Cog):
         Return:
             bool: True if in the contest channel or if no contest is active; False otherwise.
         """
-        if self.contest_active and ctx.channel != self.contest_channel:
-            return False
-        return True
+        return self.contest_active and ctx.channel == self.contest_channel
 
     def get_typist_role(self, ctx) -> discord.Role | None:
         """Retrieve the typist role for the current server
@@ -117,13 +116,11 @@ class TypingContestBot(commands.Cog):
         Return:
             discord.Role | None: The typist role if found; None otherwise.
         """
-        with open("./config/config.json") as file:
-            role_name = json.load(file)[
-                "testing_role_name" if self.debug else "typist_role_name"
-            ]
-
-        typist_role = discord.utils.get(ctx.guild.roles, name=role_name)
-        return typist_role
+        config = self.load_config()
+        role_name = config[
+            "testing_role_name" if self.debug else "typist_role_name"
+        ]
+        return discord.utils.get(ctx.guild.roles, name=role_name)
 
     def get_wpm_result_table(self) -> str:
         """Generate and return a table of WPM results for all participants.

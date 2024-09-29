@@ -198,9 +198,6 @@ class TypingContestBot(commands.Cog):
         Args:
             ctx: The command context.
         """
-        if not self.check_contest_channel(ctx):
-            return
-
         if self.contest_active:
             await ctx.reply(CONTEST_ALREADY_ACTIVE)
             return

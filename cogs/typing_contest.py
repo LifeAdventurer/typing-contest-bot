@@ -20,6 +20,7 @@ from constants import (
     NO_PARTICIPANTS,
     NOT_CONTEST_CREATOR,
     NOT_IN_CONTEST,
+    PARTICIPANT_ROLE_NAME,
     QUIT_SUCCESS,
     RANKING_EMOJIS,
     REMINDER_SUCCESS,
@@ -69,6 +70,7 @@ class TypingContestBot(commands.Cog):
         self.wpm_results: dict[discord.Member, list[str]] = {}
         self.top_three_participants: list[tuple[discord.Member, float]] = []
         self.ranking_emojis: list[str] = RANKING_EMOJIS
+        self.participant_role: discord.Role | None = None
 
     def load_config(self) -> dict:
         """Load configuration from the config file
@@ -121,6 +123,65 @@ class TypingContestBot(commands.Cog):
             "testing_role_name" if self.debug else "typist_role_name"
         ]
         return discord.utils.get(ctx.guild.roles, name=role_name)
+
+    async def create_participant_role(self, ctx) -> None:
+        """Create the temporary participant role for the typing contest.
+
+        This method checks if the participant role already exists. If the role
+        does not exist, it creates a new one with the name specified by
+        `PARTICIPANT_ROLE_NAME`. The role is intended to be temporary for
+        contest participants.
+
+        Args:
+            ctx: The command context, used to get the guild in which the role
+                 will be created.
+
+        Returns:
+            None: The method does not return a value.
+        """
+        if self.participant_role:
+            return
+
+        guild = ctx.guild
+        self.participant_role = discord.utils.get(
+            guild.roles, name=PARTICIPANT_ROLE_NAME
+        )
+        if self.participant_role is None:
+            self.participant_role = await guild.create_role(
+                name=PARTICIPANT_ROLE_NAME, reason="Temporary contest role"
+            )
+        return
+
+    async def assign_participant_role(self, member: discord.Member) -> None:
+        """Assign the participant role to the specified member.
+
+        This method adds the temporary participant role to the provided member.
+
+        Args:
+            member: The discord.Member to which the participant role will be
+            assigned.
+
+        Returns:
+            None: The method does not return a value.
+        """
+        if self.participant_role:
+            await member.add_roles(self.participant_role)
+
+    async def remove_participant_role(self, member: discord.Member) -> None:
+        """Remove the participant role from the specified member.
+
+        This method removes the temporary participant role from the provided
+        member.
+
+        Args:
+            member: The discord.Member from whom the participant role will be
+                    removed.
+
+        Returns:
+            None: The method does not return a value.
+        """
+        if self.participant_role:
+            await member.remove_roles(self.participant_role)
 
     def get_wpm_result_table(self) -> str:
         """Generate and return a table of WPM results for all participants.
@@ -205,6 +266,10 @@ class TypingContestBot(commands.Cog):
         self.contest_active = True
         self.contest_creator = ctx.author
         self.contest_channel = ctx.channel
+
+        if self.participant_role is None:
+            await self.create_participant_role(ctx)
+
         typist_role = self.get_typist_role(ctx)
         await ctx.reply(START_SUCCESS.format(typist_role=typist_role.mention))
 
@@ -229,8 +294,9 @@ class TypingContestBot(commands.Cog):
             await ctx.reply(NOT_CONTEST_CREATOR)
             return
 
-        typist_role = self.get_typist_role(ctx)
-        await ctx.reply(END_SUCCESS.format(typist_role=typist_role.mention))
+        await ctx.reply(
+            END_SUCCESS.format(typist_role=self.participant_role.mention)
+        )
 
         # Append "-" for participants without full results
         for participant in self.participants:
@@ -254,6 +320,9 @@ class TypingContestBot(commands.Cog):
         await ctx.send(
             f"## WPM result table\n\n```{wpm_result_table}```\n{top_three_result}",
         )
+
+        for participant in self.participants:
+            await self.remove_participant_role(participant)
 
         # Reset contest state
         self.contest_active = False
@@ -310,6 +379,8 @@ class TypingContestBot(commands.Cog):
         else:
             self.participants.add(ctx.author)
             self.wpm_results[ctx.author] = ["-"] * max(self.round - 1, 0)
+            await self.assign_participant_role(ctx.author)
+            print(self.participant_role)
             await ctx.reply(JOIN_SUCCESS.format(user=ctx.author.mention))
 
     @commands.command(name="quit")
@@ -333,6 +404,7 @@ class TypingContestBot(commands.Cog):
         else:
             self.participants.remove(ctx.author)
             self.wpm_results.pop(ctx.author)
+            await self.remove_participant_role(ctx.author)
             await ctx.reply(QUIT_SUCCESS.format(user=ctx.author.mention))
 
     @commands.command(name="list")
@@ -390,13 +462,14 @@ class TypingContestBot(commands.Cog):
             if len(self.wpm_results[participant]) != self.round:
                 self.wpm_results[participant].append("-")
 
-        typist_role = self.get_typist_role(ctx)
         await ctx.send(
             f"## WPM result table\n\n```{self.get_wpm_result_table()}```",
         )
         self.round += 1
+        if self.participant_role is None:
+            await self.create_participant_role(ctx)
         await ctx.send(
-            f"{typist_role.mention} Get ready! Round {self.round} is starting!"
+            f"{self.participant_role.mention} Get ready! Round {self.round} is starting!"
         )
 
     @commands.command(name="wpm")
@@ -515,6 +588,7 @@ class TypingContestBot(commands.Cog):
 
         self.participants.remove(member)
         self.wpm_results.pop(member, None)
+        await self.remove_participant_role(member)
         await ctx.reply(REMOVE_SUCCESS.format(member=member.mention))
 
     @commands.command(name="ban")
@@ -547,6 +621,7 @@ class TypingContestBot(commands.Cog):
         self.participants.remove(member)
         self.wpm_results.pop(member, None)
         self.banned_participants.add(member)
+        await self.remove_participant_role(member)
         await ctx.reply(BAN_SUCCESS.format(user=member.mention))
 
     @commands.command(name="commands")

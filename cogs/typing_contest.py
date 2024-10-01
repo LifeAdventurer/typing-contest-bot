@@ -50,6 +50,7 @@ class TypingContestBot(commands.Cog):
         wpm_results: WPM results for each participant.
         top_three_participants: The top three participant based on average WPM.
         ranking_emojis: Emojis used to represent rankings.
+        participant_role: The temporary role assigned to participants during the contest.
     """
 
     def __init__(self, bot: commands.Bot, debug: bool) -> None:
@@ -110,7 +111,7 @@ class TypingContestBot(commands.Cog):
     def get_typist_role(self, ctx) -> discord.Role | None:
         """Retrieve the typist role for the current server
 
-        The role is determined by the `debug flag.
+        The role is determined by the `debug` flag.
 
         Args:
             ctx: The command context.

@@ -13,6 +13,7 @@ from constants import (
     CONFIG_JSON_FILE_PATH,
     CONTEST_ALREADY_ACTIVE,
     END_SUCCESS,
+    IDLE_THRESHOLD_MINUTES,
     INVALID_WPM,
     JOIN_SUCCESS,
     MEMBER_NOT_IN_CONTEST,
@@ -32,7 +33,7 @@ from constants import (
     STATUS_INACTIVE,
 )
 
-IDLE_THRESHOLD = timedelta(minutes=10)
+IDLE_THRESHOLD = timedelta(minutes=IDLE_THRESHOLD_MINUTES)
 
 
 class TypingContestBot(commands.Cog):
@@ -114,7 +115,7 @@ class TypingContestBot(commands.Cog):
             idle_time = datetime.now() - self.last_activity_time
             if idle_time > IDLE_THRESHOLD:
                 await self.contest_channel.send(
-                    f"{self.contest_creator.mention}, the contest has been idle for more than 10 minutes."
+                    f"{self.contest_creator.mention}, the contest has been idle for more than {IDLE_THRESHOLD_MINUTES} minutes."
                 )
 
     @check_idle_status.before_loop

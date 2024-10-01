@@ -35,6 +35,9 @@ ALL_SUBMITTED_SUCCESS = (
 RANKING_EMOJIS = [":first_place:", ":second_place:", ":third_place:"]
 CHECKMARK_EMOJI = "\u2705"  # \u2705 is equivalent to :white_check_mark: emoji
 
+# Idle threshold minutes
+IDLE_THRESHOLD_MINUTES = 10
+
 # Roles
 PARTICIPANT_ROLE_NAME = "Participant"
 

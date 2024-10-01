@@ -1,7 +1,8 @@
 import json
+from datetime import datetime, timedelta
 
 import discord
-from discord.ext import commands
+from discord.ext import commands, tasks
 
 from constants import (
     ALL_SUBMITTED_SUCCESS,
@@ -31,6 +32,8 @@ from constants import (
     STATUS_INACTIVE,
 )
 
+IDLE_THRESHOLD = timedelta(minutes=10)
+
 
 class TypingContestBot(commands.Cog):
     """A cog for managing a typing contest in a Discord server.
@@ -51,6 +54,7 @@ class TypingContestBot(commands.Cog):
         top_three_participants: The top three participant based on average WPM.
         ranking_emojis: Emojis used to represent rankings.
         participant_role: The temporary role assigned to participants during the contest.
+        last_activity_time: The last time an activity was recorded during the contest.
     """
 
     def __init__(self, bot: commands.Bot, debug: bool) -> None:
@@ -72,6 +76,8 @@ class TypingContestBot(commands.Cog):
         self.top_three_participants: list[tuple[discord.Member, float]] = []
         self.ranking_emojis: list[str] = RANKING_EMOJIS
         self.participant_role: discord.Role | None = None
+        self.last_activity_time: datetime = datetime.now()
+        self.check_idle_status.start()
 
     def load_config(self) -> dict:
         """Load configuration from the config file
@@ -96,6 +102,29 @@ class TypingContestBot(commands.Cog):
         presence_message = f"The bot held {contests_held} contests."
         activity = discord.CustomActivity(name=presence_message)
         await self.bot.change_presence(activity=activity)
+
+    @tasks.loop(minutes=1)
+    async def check_idle_status(self) -> None:
+        """Periodically check if the contest has been idle for too long."""
+        if (
+            self.contest_active
+            and self.contest_creator
+            and self.contest_channel
+        ):
+            idle_time = datetime.now() - self.last_activity_time
+            if idle_time > IDLE_THRESHOLD:
+                await self.contest_channel.send(
+                    f"{self.contest_creator.mention}, the contest has been idle for more than 10 minutes."
+                )
+
+    @check_idle_status.before_loop
+    async def before_check_idle_status(self) -> None:
+        """Wait until the bot is ready before starting the idle check."""
+        await self.bot.wait_until_ready()
+
+    def update_activity_time(self) -> None:
+        """Update the last activity time to the current time."""
+        self.last_activity_time = datetime.now()
 
     def check_contest_channel(self, ctx) -> bool:
         """Ensure commands are run in the active contest channel.
@@ -274,6 +303,8 @@ class TypingContestBot(commands.Cog):
         typist_role = self.get_typist_role(ctx)
         await ctx.reply(START_SUCCESS.format(typist_role=typist_role.mention))
 
+        self.update_activity_time()
+
     @commands.command(name="end")
     async def end(self, ctx) -> None:
         """End the typing contest
@@ -384,6 +415,8 @@ class TypingContestBot(commands.Cog):
             print(self.participant_role)
             await ctx.reply(JOIN_SUCCESS.format(user=ctx.author.mention))
 
+        self.update_activity_time()
+
     @commands.command(name="quit")
     async def quit(self, ctx) -> None:
         """Quit the typing contest.
@@ -407,6 +440,8 @@ class TypingContestBot(commands.Cog):
             self.wpm_results.pop(ctx.author)
             await self.remove_participant_role(ctx.author)
             await ctx.reply(QUIT_SUCCESS.format(user=ctx.author.mention))
+
+        self.update_activity_time()
 
     @commands.command(name="list")
     async def list_participants(self, ctx) -> None:
@@ -438,6 +473,8 @@ class TypingContestBot(commands.Cog):
             color=discord.Color.purple(),
         )
         await ctx.reply(embed=embed)
+
+        self.update_activity_time()
 
     @commands.command(name="next")
     async def next(self, ctx) -> None:
@@ -472,6 +509,8 @@ class TypingContestBot(commands.Cog):
         await ctx.send(
             f"{self.participant_role.mention} Get ready! Round {self.round} is starting!"
         )
+
+        self.update_activity_time()
 
     @commands.command(name="wpm")
     async def wpm(self, ctx, wpm: str) -> None:
@@ -509,6 +548,8 @@ class TypingContestBot(commands.Cog):
             self.wpm_results[ctx.author].append(wpm)
         self.wpm_results[ctx.author][-1] = wpm
         await ctx.message.add_reaction(CHECKMARK_EMOJI)
+
+        self.update_activity_time()
 
     @commands.command(name="result")
     async def result(self, ctx) -> None:
@@ -560,6 +601,8 @@ class TypingContestBot(commands.Cog):
 
         await ctx.send(reminder_message)
 
+        self.update_activity_time()
+
     @commands.command(name="remove")
     async def remove(self, ctx, member: discord.Member) -> None:
         """Remove a participant form the typing contest.
@@ -591,6 +634,8 @@ class TypingContestBot(commands.Cog):
         self.wpm_results.pop(member, None)
         await self.remove_participant_role(member)
         await ctx.reply(REMOVE_SUCCESS.format(member=member.mention))
+
+        self.update_activity_time()
 
     @commands.command(name="ban")
     async def ban(self, ctx, member: discord.Member) -> None:
@@ -624,6 +669,8 @@ class TypingContestBot(commands.Cog):
         self.banned_participants.add(member)
         await self.remove_participant_role(member)
         await ctx.reply(BAN_SUCCESS.format(user=member.mention))
+
+        self.update_activity_time()
 
     @commands.command(name="commands")
     async def commands(self, ctx) -> None:

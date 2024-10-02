@@ -93,6 +93,10 @@ python main.py # Or `poetry run python main.py` if using Poetry
 - `!getrole`: Assign yourself the typist role.
 - `!commands`: Show this list of commands.
 
+## Contributing
+
+Please see the [CONTRIBUTING.md](./CONTRIBUTING.md) for guidelines on contributing to this project.
+
 ## License
 
 This project is licensed under the GNU General Public License v3.0 (GPL-3.0). See the [`LICENSE`](./LICENSE) file for details.

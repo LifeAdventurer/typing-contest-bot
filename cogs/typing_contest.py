@@ -138,7 +138,7 @@ class TypingContestBot(commands.Cog):
         """
         return self.contest_active and ctx.channel == self.contest_channel
 
-    async def get_typist_role(self, ctx) -> discord.Role | None:
+    async def get_typist_role(self, ctx) -> discord.Role:
         """Retrieve the typist role for the current server
 
         The role is determined by the `debug` flag.
@@ -147,7 +147,7 @@ class TypingContestBot(commands.Cog):
             ctx: The command context.
 
         Return:
-            discord.Role | None: The typist role if found; None otherwise.
+            discord.Role: The typist role if found; None otherwise.
         """
         config = self.load_config()
         role_name = config[
@@ -677,6 +677,26 @@ class TypingContestBot(commands.Cog):
 
         self.update_activity_time()
 
+    @commands.command(name="getrole")
+    async def get_role(self, ctx) -> None:
+        """Assign the Typist role to a user if they don't already have it.
+
+        This command checks if the user already has the Typist role. If they do,
+        it informs the user that they already have the role. Otherwise, the role
+        is assigned to them.
+
+        Args:
+            ctx: The command context.
+        """
+        typist_role = await self.get_typist_role(ctx)
+        if typist_role in ctx.author.roles:
+            await ctx.send(f"You already have the '{typist_role.name}' role!")
+        else:
+            await ctx.author.add_roles(typist_role)
+            await ctx.send(
+                f"'{typist_role.name}' role has been assigned to you!"
+            )
+
     @commands.command(name="commands")
     async def commands(self, ctx) -> None:
         """Display the list of available commands.
@@ -748,6 +768,11 @@ class TypingContestBot(commands.Cog):
         embed.add_field(
             name="!ban {member}",
             value="Ban a participant from the typing contest. Once banned, they cannot join again. Only the contest creator can use this.",
+            inline=False,
+        )
+        embed.add_field(
+            name="!getrole",
+            value="Assign yourself the typist role.",
             inline=False,
         )
         embed.add_field(

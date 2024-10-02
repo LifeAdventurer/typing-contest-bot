@@ -90,6 +90,7 @@ python main.py # Or `poetry run python main.py` if using Poetry
 - `!remind`: Sends a reminder to participants who haven't submitted their WPM for the current round. Use this if the round has ended and some participants have not yet submitted their results.
 - `!remove {member}`: Remove a participant from the typing contest. Only the contest creator can use this.
 - `!ban {member}`: Ban a participant from the typing contest. Once banned, they cannot join again. Only the contest creator can use this.
+- `!getrole`: Assign yourself the typist role.
 - `!commands`: Show this list of commands.
 
 ## License

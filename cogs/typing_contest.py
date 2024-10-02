@@ -138,7 +138,7 @@ class TypingContestBot(commands.Cog):
         """
         return self.contest_active and ctx.channel == self.contest_channel
 
-    def get_typist_role(self, ctx) -> discord.Role | None:
+    async def get_typist_role(self, ctx) -> discord.Role | None:
         """Retrieve the typist role for the current server
 
         The role is determined by the `debug` flag.
@@ -153,7 +153,11 @@ class TypingContestBot(commands.Cog):
         role_name = config[
             "testing_role_name" if self.debug else "typist_role_name"
         ]
-        return discord.utils.get(ctx.guild.roles, name=role_name)
+        role = discord.utils.get(ctx.guild.roles, name=role_name)
+
+        if role is None:
+            role = ctx.guild.create_role(name=role_name)
+        return role
 
     async def create_participant_role(self, ctx) -> None:
         """Create the temporary participant role for the typing contest.
@@ -301,7 +305,7 @@ class TypingContestBot(commands.Cog):
         if self.participant_role is None:
             await self.create_participant_role(ctx)
 
-        typist_role = self.get_typist_role(ctx)
+        typist_role = await self.get_typist_role(ctx)
         await ctx.reply(START_SUCCESS.format(typist_role=typist_role.mention))
 
         self.update_activity_time()

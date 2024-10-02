@@ -24,11 +24,12 @@ def parse_args() -> argparse.Namespace:
     return parser.parse_args()
 
 
-def load_config(file_path: str) -> dict:
+def load_config(file_path: str, debug: bool) -> dict:
     """Loads configuration from a JSON file and validates required fields.
 
     Args:
         file_path: Path to the JSON configuration file.
+        debug: Whether to enable debug mode.
 
     Returns:
         dict: The configuration dictionary.
@@ -48,9 +49,12 @@ def load_config(file_path: str) -> dict:
     required_keys = {
         "token": str,
         "typist_role_name": str,
-        "testing_role_name": str,
         "contests_held": int,
     }
+
+    # If debug mode is enabled, add testing_role_name to the required keys
+    if debug:
+        required_keys["testing_role_name"] = str
 
     # Validate that the required keys are present and of the correct type
     for key, expected_type in required_keys.items():
@@ -114,7 +118,7 @@ if __name__ == "__main__":
     args = parse_args()
 
     # Load configuration from JSON file
-    config = load_config(CONFIG_JSON_FILE_PATH)
+    config = load_config(CONFIG_JSON_FILE_PATH, debug=args.debug)
 
     # Initialize and run the bot
     bot_instance = BotSetup(config["token"], debug=args.debug)

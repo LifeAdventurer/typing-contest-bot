@@ -22,13 +22,13 @@ cd typing-contest-bot
 
 #### Using Poetry (recommended)
 
-If you don't have Poetry installed, you can install it using the following command:
+If you haven't installed Poetry yet, use the following command:
 
 ```sh
 curl -sSL https://install.python-poetry.org | python3 -
 ```
 
-Then, to install all dependencies, run:
+Then, install all dependencies by running:
 
 ```sh
 poetry install
@@ -57,13 +57,13 @@ pip install -r requirements.txt
 
 ### 3. Configure the bot:
 
-Create a `config.json` file under `./config/`:
+Create a `config.json` file in the `./config/` directory with the following structure:
 
 ```json
 {
     "token": "your-discord-bot-token",
     "typist_role_name": "your-server-typist-role",
-    "testing_role_name": "your-server-testing-role",
+    "testing_role_name": "your-server-testing-role", // Optional, required only for debug mode
     "contests_held": 0
 }
 ```
@@ -96,3 +96,5 @@ python main.py # Or `poetry run python main.py` if using Poetry
 ## License
 
 This project is licensed under the GNU General Public License v3.0 (GPL-3.0). See the [`LICENSE`](./LICENSE) file for details.
+
+<h2 align="center">Happy Typing and Good Luck!</h2>

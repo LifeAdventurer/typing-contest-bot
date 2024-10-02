@@ -690,10 +690,10 @@ class TypingContestBot(commands.Cog):
         """
         typist_role = await self.get_typist_role(ctx)
         if typist_role in ctx.author.roles:
-            await ctx.send(f"You already have the '{typist_role.name}' role!")
+            await ctx.reply(f"You already have the '{typist_role.name}' role!")
         else:
             await ctx.author.add_roles(typist_role)
-            await ctx.send(
+            await ctx.reply(
                 f"'{typist_role.name}' role has been assigned to you!"
             )
 

@@ -18,6 +18,7 @@ from constants import (
     JOIN_SUCCESS,
     MEMBER_NOT_IN_CONTEST,
     MEMBER_NOT_IN_GUILD,
+    MUST_SUBMIT_WPM,
     NO_ACTIVE_CONTEST,
     NO_PARTICIPANTS,
     NOT_CONTEST_CREATOR,
@@ -51,6 +52,7 @@ class TypingContestBot(commands.Cog):
         participants: The set of participants in the contest.
         banned_participants: The set of banned participants.
         round: The current round number.
+        last_next_used: Indicates whether the `!next` command was used in the last round.
         wpm_results: WPM results for each participant.
         top_three_participants: The top three participant based on average WPM.
         ranking_emojis: Emojis used to represent rankings.
@@ -73,6 +75,7 @@ class TypingContestBot(commands.Cog):
         self.participants: set[discord.Member] = set()
         self.banned_participants: set[discord.Member] = set()
         self.round: int = 0
+        self.last_next_used: bool = False
         self.wpm_results: dict[discord.Member, list[str]] = {}
         self.top_three_participants: list[tuple[discord.Member, float]] = []
         self.ranking_emojis: list[str] = RANKING_EMOJIS
@@ -371,6 +374,7 @@ class TypingContestBot(commands.Cog):
         self.participants.clear()
         self.banned_participants.clear()
         self.round = 0
+        self.last_next_used = False
         self.wpm_results = {}
         self.top_three_participants = []
         self.update_contest_held()
@@ -490,6 +494,10 @@ class TypingContestBot(commands.Cog):
             await ctx.reply(NOT_CONTEST_CREATOR)
             return
 
+        if self.last_next_used:
+            await ctx.reply(MUST_SUBMIT_WPM)
+            return
+
         for participant in self.participants:
             if len(self.wpm_results[participant]) != self.round:
                 self.wpm_results[participant].append("-")
@@ -504,6 +512,7 @@ class TypingContestBot(commands.Cog):
             f"{self.participant_role.mention} Get ready! Round {self.round} is starting!"
         )
 
+        self.last_next_used = True
         self.update_activity_time()
 
     @commands.command(name="wpm")
@@ -539,6 +548,7 @@ class TypingContestBot(commands.Cog):
         self.wpm_results[ctx.author][-1] = wpm
         await ctx.message.add_reaction(CHECKMARK_EMOJI)
 
+        self.last_next_used = False
         self.update_activity_time()
 
     @commands.command(name="result")

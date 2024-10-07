@@ -30,6 +30,7 @@ REMINDER_SUCCESS = "The following participants haven't submitted their WPM yet:\
 ALL_SUBMITTED_SUCCESS = (
     "All participants have submitted their WPM for this round."
 )
+MUST_SUBMIT_WPM = "At least one participant must submit a WPM before advancing to the next round."
 
 # Ranking and Emojis
 RANKING_EMOJIS = [":first_place:", ":second_place:", ":third_place:"]

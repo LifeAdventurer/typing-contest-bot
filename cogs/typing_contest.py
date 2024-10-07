@@ -127,16 +127,23 @@ class TypingContestBot(commands.Cog):
         """Update the last activity time to the current time."""
         self.last_activity_time = datetime.now()
 
-    def check_contest_channel(self, ctx) -> bool:
-        """Ensure commands are run in the active contest channel.
+    async def validate_contest_status(self, ctx) -> bool:
+        """Validates if a contest is active and if the command is issued in the correct channel.
 
         Args:
             ctx: The command context.
 
         Return:
-            bool: True if in the contest channel or if no contest is active; False otherwise.
+            bool: True if in the contest channel and the contest is active; False otherwise.
         """
-        return self.contest_active and ctx.channel == self.contest_channel
+        if not self.contest_active:
+            await ctx.reply(NO_ACTIVE_CONTEST)
+            return False
+
+        if ctx.channel != self.contest_channel:
+            return False
+
+        return True
 
     async def get_typist_role(self, ctx) -> discord.Role:
         """Retrieve the typist role for the current server
@@ -320,11 +327,7 @@ class TypingContestBot(commands.Cog):
         Args:
             ctx: The command context.
         """
-        if not self.check_contest_channel(ctx):
-            return
-
-        if not self.contest_active:
-            await ctx.reply(NO_ACTIVE_CONTEST)
+        if not await self.validate_contest_status(ctx):
             return
 
         if ctx.author != self.contest_creator:
@@ -398,11 +401,7 @@ class TypingContestBot(commands.Cog):
         Args:
             ctx: The command context.
         """
-        if not self.check_contest_channel(ctx):
-            return
-
-        if not self.contest_active:
-            await ctx.reply(NO_ACTIVE_CONTEST)
+        if not await self.validate_contest_status(ctx):
             return
 
         if ctx.author in self.banned_participants:
@@ -432,11 +431,8 @@ class TypingContestBot(commands.Cog):
         Args:
             ctx: The command context.
         """
-        if not self.check_contest_channel(ctx):
+        if not await self.validate_contest_status(ctx):
             return
-
-        if not self.contest_active:
-            await ctx.reply(NO_ACTIVE_CONTEST)
 
         if ctx.author not in self.participants:
             await ctx.reply(NOT_IN_CONTEST)
@@ -458,11 +454,7 @@ class TypingContestBot(commands.Cog):
         Args:
             ctx: The command context.
         """
-        if not self.check_contest_channel(ctx):
-            return
-
-        if not self.contest_active:
-            await ctx.reply(NO_ACTIVE_CONTEST)
+        if not await self.validate_contest_status(ctx):
             return
 
         if not self.participants:
@@ -491,11 +483,8 @@ class TypingContestBot(commands.Cog):
         Args:
             ctx: The command context.
         """
-        if not self.check_contest_channel(ctx):
+        if not await self.validate_contest_status(ctx):
             return
-
-        if not self.contest_active:
-            await ctx.reply(NO_ACTIVE_CONTEST)
 
         if ctx.author != self.contest_creator:
             await ctx.reply(NOT_CONTEST_CREATOR)
@@ -530,11 +519,7 @@ class TypingContestBot(commands.Cog):
             ctx: The command context.
             wpm: The WPM result submitted by the participant.
         """
-        if not self.check_contest_channel(ctx):
-            return
-
-        if not self.contest_active:
-            await ctx.reply(NO_ACTIVE_CONTEST)
+        if not await self.validate_contest_status(ctx):
             return
 
         if ctx.author not in self.participants:
@@ -566,11 +551,7 @@ class TypingContestBot(commands.Cog):
         Args:
             ctx: The command context.
         """
-        if not self.check_contest_channel(ctx):
-            return
-
-        if not self.contest_active:
-            await ctx.reply(NO_ACTIVE_CONTEST)
+        if not await self.validate_contest_status(ctx):
             return
 
         await ctx.reply(
@@ -588,7 +569,7 @@ class TypingContestBot(commands.Cog):
         Args:
             ctx: The command context.
         """
-        if not self.check_contest_channel(ctx):
+        if not await self.validate_contest_status(ctx):
             return
 
         pending_participants = [
@@ -620,7 +601,7 @@ class TypingContestBot(commands.Cog):
             ctx: The command context.
             member: The participant to be removed.
         """
-        if not self.check_contest_channel(ctx):
+        if not await self.validate_contest_status(ctx):
             return
 
         if ctx.author != self.contest_creator:
@@ -654,7 +635,7 @@ class TypingContestBot(commands.Cog):
             ctx: The command context.
             member: The participant to be banned.
         """
-        if not self.check_contest_channel(ctx):
+        if not await self.validate_contest_status(ctx):
             return
 
         if ctx.author != self.contest_creator:

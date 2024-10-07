@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "typing-contest-bot"
-version = "1.0.1"
+version = "1.1.0"
 description = "Typing Contest Discord Bot"
 authors = ["lifeadventurer <life0adventurer@gmail.com>"]
 readme = "README.md"

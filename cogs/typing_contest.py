@@ -346,6 +346,12 @@ class TypingContestBot(commands.Cog):
             if len(self.wpm_results[participant]) != self.round:
                 self.wpm_results[participant].append("-")
 
+        if self.last_next_used:
+            self.round -= 1
+            for participant in self.participants:
+                if self.wpm_results[participant]:
+                    self.wpm_results[participant].pop()
+
         wpm_result_table = self.get_wpm_result_table()
 
         if self.top_three_participants:
